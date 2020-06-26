@@ -1,0 +1,40 @@
+#Movie Recommendation System
+import pandas as pd
+df_movie=pd.read_csv('D:/python/Movie Recommendation/Movie_Id_Titles')
+df_movie.head()
+df_user=pd.read_csv('D:/python/Movie Recommendation/u.data',sep='\t',names=['userid','item_id','ratings','timespan'])
+df_user.head()
+df_user.dropna(inplace=True)
+
+df_data=pd.merge(df_user,df_movie,on='item_id',how='inner')
+df_data.head(10)
+
+df_title=pd.DataFrame(df_data.groupby('title')['ratings'].mean())
+df_title['Number of ratings']=df_data.groupby('title')['ratings'].count()
+df_title #title has become index not a column so, it contains only two columns
+
+df_sortedtitle=df_title.sort_values('ratings',ascending=False)
+df_sorted_title=df_title.sort_values('Number of ratings',ascending=False)
+
+movie_table=df_data.pivot_table(index='userid',columns='title',values='ratings')
+
+movie_name=input('Enter movie name ')
+movie_data=movie_table[movie_name]
+print(movie_data)
+
+correlated_movies=movie_table.corrwith(movie_data)
+print(correlated_movies)
+
+df_correlated=pd.DataFrame(correlated_movies.dropna(),columns=['Correlation'])
+print(df_correlated)
+
+df_sortedmovies=df_correlated.sort_values(by='Correlation',ascending=False)
+print(df_sortedmovies)
+df_sortedmovies.head(10)
+
+#joining ratings column and then sorting it if the number of ratings are above 100
+df_sortedmovies=df_sortedmovies.join(df_title['Total Ratings']) #join func helps in joining other columns from different datas
+df_sortedmovies[df_sortedmovies['Total Ratings']>=100].sort_values('Correlation',ascending=False).head(10)
+
+print(df_sortedmovies.index)
+print(df_sortedmovies.index.to_list()) 
